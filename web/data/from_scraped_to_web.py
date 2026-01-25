@@ -24,89 +24,112 @@ for mes_num in range(1, 13):
     mes_name = meses_es[mes_num - 1]
     month_data = {'nombre': mes_name, 'dias': {}}
     
+    # Leer todos los datos del mes en una lista
+    rows_list = []
     with open(csv_file, 'r') as f:
         reader = csv.DictReader(f)
-        
         for row in reader:
-            day = row['DD']
-            month_data['dias'][day] = []
+            rows_list.append(row)
+    
+    # Crear un array continuo con todas las alturas del mes
+    todas_alturas = []
+    for row in rows_list:
+        alturas_dia = [int(row[str(h)]) for h in range(24)]
+        todas_alturas.extend(alturas_dia)
+    
+    # Identificar máximos y mínimos locales en el continuo del mes
+    # Manejo de mesetas (empates): el primer punto de una meseta que cambia de tendencia
+    maximos_locales = set()
+    minimos_locales = set()
+    
+    i = 0
+    while i < len(todas_alturas):
+        altura_actual = todas_alturas[i]
+        
+        # Buscar el final de una posible meseta (valores iguales consecutivos)
+        j = i
+        while j < len(todas_alturas) - 1 and todas_alturas[j + 1] == altura_actual:
+            j += 1
+        
+        # Obtener altura anterior y siguiente a la meseta
+        prev_altura = todas_alturas[i - 1] if i > 0 else None
+        next_altura = todas_alturas[j + 1] if j < len(todas_alturas) - 1 else None
+        
+        # Determinar si es máximo o mínimo local
+        if prev_altura is not None and next_altura is not None:
+            # Caso general: comparar con ambos lados
+            if altura_actual > prev_altura and altura_actual > next_altura:
+                # Máximo local - marcar el primer punto de la meseta
+                maximos_locales.add(i)
+            elif altura_actual < prev_altura and altura_actual < next_altura:
+                # Mínimo local - marcar el primer punto de la meseta
+                minimos_locales.add(i)
+        elif prev_altura is None and next_altura is not None:
+            # Primera hora del mes
+            if altura_actual > next_altura:
+                maximos_locales.add(i)
+            elif altura_actual < next_altura:
+                minimos_locales.add(i)
+        elif next_altura is None and prev_altura is not None:
+            # Última hora del mes
+            if altura_actual > prev_altura:
+                maximos_locales.add(i)
+            elif altura_actual < prev_altura:
+                minimos_locales.add(i)
+        
+        # Avanzar al siguiente valor diferente
+        i = j + 1
+    
+    # Asignar tipos a cada hora considerando el continuo temporal
+    for dia_idx, row in enumerate(rows_list):
+        day = row['DD']
+        month_data['dias'][day] = []
+        
+        for hour in range(24):
+            # Calcular índice global en el mes
+            indice_global = dia_idx * 24 + hour
             
-            # Obtener todas las alturas del día
-            alturas = [int(row[str(h)]) for h in range(24)]
+            altura_cm = todas_alturas[indice_global]
+            altura_m = altura_cm / 100.0
             
-            # Identificar máximos y mínimos locales
-            maximos_locales = set()
-            minimos_locales = set()
-            
-            for hour in range(24):
-                altura_cm = alturas[hour]
+            # Determinar tipo
+            if indice_global in maximos_locales:
+                tipo = 'pleamar'
+            elif indice_global in minimos_locales:
+                tipo = 'bajamar'
+            else:
+                # No es extremo local, determinar si está subiendo o bajando
+                # Buscar el próximo extremo hacia adelante
+                siguiente_es_maximo = None
+                for i in range(indice_global + 1, len(todas_alturas)):
+                    if i in maximos_locales:
+                        siguiente_es_maximo = True
+                        break
+                    elif i in minimos_locales:
+                        siguiente_es_maximo = False
+                        break
                 
-                # Comparar con vecinos (considerar límites del día)
-                if hour == 0:
-                    # Primera hora: comparar solo con la siguiente
-                    if altura_cm > alturas[hour + 1]:
-                        maximos_locales.add(hour)
-                    elif altura_cm < alturas[hour + 1]:
-                        minimos_locales.add(hour)
-                elif hour == 23:
-                    # Última hora: comparar solo con la anterior
-                    if altura_cm > alturas[hour - 1]:
-                        maximos_locales.add(hour)
-                    elif altura_cm < alturas[hour - 1]:
-                        minimos_locales.add(hour)
-                else:
-                    # Horas intermedias: comparar con ambos vecinos
-                    prev_h = alturas[hour - 1]
-                    next_h = alturas[hour + 1]
-                    
-                    if altura_cm > prev_h and altura_cm > next_h:
-                        maximos_locales.add(hour)
-                    elif altura_cm < prev_h and altura_cm < next_h:
-                        minimos_locales.add(hour)
-            
-            # Determinar el tipo para cada hora
-            for hour in range(24):
-                altura_cm = alturas[hour]
-                altura_m = altura_cm / 100.0
-                
-                # Determinar tipo
-                if hour in maximos_locales:
-                    tipo = 'pleamar'
-                elif hour in minimos_locales:
-                    tipo = 'bajamar'
-                else:
-                    # No es extremo local, determinar si está subiendo o bajando
-                    # Buscar el próximo extremo hacia adelante
-                    siguiente_es_maximo = None
-                    for h in range(hour + 1, 24):
-                        if h in maximos_locales:
-                            siguiente_es_maximo = True
+                # Si no encontramos extremo hacia adelante, buscar hacia atrás
+                if siguiente_es_maximo is None:
+                    for i in range(indice_global - 1, -1, -1):
+                        if i in maximos_locales:
+                            siguiente_es_maximo = False  # Venimos de un máximo, vamos bajando
                             break
-                        elif h in minimos_locales:
-                            siguiente_es_maximo = False
+                        elif i in minimos_locales:
+                            siguiente_es_maximo = True  # Venimos de un mínimo, vamos subiendo
                             break
-                    
-                    # Si no encontramos extremo hacia adelante, buscar hacia atrás
-                    if siguiente_es_maximo is None:
-                        for h in range(hour - 1, -1, -1):
-                            if h in maximos_locales:
-                                siguiente_es_maximo = False  # Venimos de un máximo, vamos bajando
-                                break
-                            elif h in minimos_locales:
-                                siguiente_es_maximo = True  # Venimos de un mínimo, vamos subiendo
-                                break
-                    
-                    # Determinar tipo basado en la tendencia
-                    if siguiente_es_maximo:
-                        tipo = 'subiendo'
-                    else:
-                        tipo = 'bajando'
                 
-                month_data['dias'][day].append({
-                    'hora': f'{hour:02d}:00',
-                    'altura': round(altura_m, 2),
-                    'tipo': tipo
-                })
+                # Determinar tipo basado en la tendencia
+                if siguiente_es_maximo:
+                    tipo = 'subiendo'
+                else:
+                    tipo = 'bajando'
+            
+            month_data['dias'][day].append({
+                'hora': f'{hour:02d}:00',
+                'altura': round(altura_m, 2),
+                'tipo': tipo
+            })
     
     data_by_month[mes_name] = month_data
 

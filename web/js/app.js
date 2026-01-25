@@ -182,6 +182,65 @@ function mostrarMareas(mes, dia) {
     });
 }
 
+// Obtener día siguiente
+function obtenerDiaSiguiente(mes, dia) {
+    const meses_es = [
+        'ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO',
+        'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'
+    ];
+    
+    const dias_del_mes = mareas_data.meses[mes] ? Object.keys(mareas_data.meses[mes].dias).map(d => parseInt(d)) : [];
+    const dia_num = parseInt(dia);
+    
+    // Buscar el siguiente día en el mismo mes
+    const siguiente_dia = dias_del_mes.find(d => d > dia_num);
+    if (siguiente_dia) {
+        return { mes: mes, dia: siguiente_dia.toString() };
+    }
+    
+    // Si no hay más días en este mes, buscar en el siguiente mes
+    const mes_idx = meses_es.indexOf(mes);
+    if (mes_idx < 11) {
+        const siguiente_mes = meses_es[mes_idx + 1];
+        if (mareas_data.meses[siguiente_mes]) {
+            const primer_dia = Math.min(...Object.keys(mareas_data.meses[siguiente_mes].dias).map(d => parseInt(d)));
+            return { mes: siguiente_mes, dia: primer_dia.toString() };
+        }
+    }
+    
+    return null;
+}
+
+// Obtener día anterior
+function obtenerDiaAnterior(mes, dia) {
+    const meses_es = [
+        'ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO',
+        'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'
+    ];
+    
+    const dias_del_mes = mareas_data.meses[mes] ? Object.keys(mareas_data.meses[mes].dias).map(d => parseInt(d)) : [];
+    const dia_num = parseInt(dia);
+    
+    // Buscar el día anterior en el mismo mes
+    const dias_anteriores = dias_del_mes.filter(d => d < dia_num);
+    if (dias_anteriores.length > 0) {
+        const anterior_dia = Math.max(...dias_anteriores);
+        return { mes: mes, dia: anterior_dia.toString() };
+    }
+    
+    // Si no hay días anteriores en este mes, buscar en el mes anterior
+    const mes_idx = meses_es.indexOf(mes);
+    if (mes_idx > 0) {
+        const anterior_mes = meses_es[mes_idx - 1];
+        if (mareas_data.meses[anterior_mes]) {
+            const ultimo_dia = Math.max(...Object.keys(mareas_data.meses[anterior_mes].dias).map(d => parseInt(d)));
+            return { mes: anterior_mes, dia: ultimo_dia.toString() };
+        }
+    }
+    
+    return null;
+}
+
 // Mostrar próxima y última marea
 function mostrarProximaYUltimaMarea(mes, dia, fecha_actual) {
     if (!mareas_data || !mareas_data.meses[mes]) return;
@@ -242,7 +301,7 @@ function mostrarProximaYUltimaMarea(mes, dia, fecha_actual) {
     let eventos_pasados = [];
     let eventos_futuros = [];
     
-    // Buscar hacia atrás para eventos pasados
+    // Buscar hacia atrás para eventos pasados (en el día actual)
     for (let i = indice_actual; i >= 0; i--) {
         if (mareas[i].tipo === 'pleamar' || mareas[i].tipo === 'bajamar') {
             eventos_pasados.push(mareas[i]);
@@ -250,11 +309,45 @@ function mostrarProximaYUltimaMarea(mes, dia, fecha_actual) {
         }
     }
     
-    // Buscar hacia adelante para eventos futuros
+    // Si no hay suficientes eventos pasados, buscar en el día anterior
+    if (eventos_pasados.length < 2) {
+        const dia_anterior = obtenerDiaAnterior(mes, dia);
+        if (dia_anterior) {
+            const mareas_ayer = mareas_data.meses[dia_anterior.mes].dias[dia_anterior.dia];
+            if (mareas_ayer) {
+                for (let i = mareas_ayer.length - 1; i >= 0; i--) {
+                    if (mareas_ayer[i].tipo === 'pleamar' || mareas_ayer[i].tipo === 'bajamar') {
+                        const evento_con_fecha = { ...mareas_ayer[i], fecha: `${dia_anterior.dia}/${dia_anterior.mes}` };
+                        eventos_pasados.push(evento_con_fecha);
+                        if (eventos_pasados.length >= 2) break;
+                    }
+                }
+            }
+        }
+    }
+    
+    // Buscar hacia adelante para eventos futuros (en el día actual)
     for (let i = indice_actual + 1; i < mareas.length; i++) {
         if (mareas[i].tipo === 'pleamar' || mareas[i].tipo === 'bajamar') {
             eventos_futuros.push(mareas[i]);
             if (eventos_futuros.length >= 2) break;
+        }
+    }
+    
+    // Si no hay suficientes eventos futuros, buscar en el día siguiente
+    if (eventos_futuros.length < 2) {
+        const dia_siguiente = obtenerDiaSiguiente(mes, dia);
+        if (dia_siguiente) {
+            const mareas_manana = mareas_data.meses[dia_siguiente.mes].dias[dia_siguiente.dia];
+            if (mareas_manana) {
+                for (let i = 0; i < mareas_manana.length; i++) {
+                    if (mareas_manana[i].tipo === 'pleamar' || mareas_manana[i].tipo === 'bajamar') {
+                        const evento_con_fecha = { ...mareas_manana[i], fecha: `${dia_siguiente.dia}/${dia_siguiente.mes}` };
+                        eventos_futuros.push(evento_con_fecha);
+                        if (eventos_futuros.length >= 2) break;
+                    }
+                }
+            }
         }
     }
     
