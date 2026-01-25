@@ -149,15 +149,15 @@ function mostrarDatosHoy() {
     const mes = meses_es[ahora.getMonth()];
     const dia = ahora.getDate().toString();
     
-    // Mostrar mareas de hoy
-    mostrarMareas(mes, dia);
+    // Mostrar mareas de hoy (pasando la hora actual para reorganizar)
+    mostrarMareas(mes, dia, ahora);
     
     // Mostrar próxima y última marea
     mostrarProximaYUltimaMarea(mes, dia, ahora);
 }
 
 // Mostrar mareas de un día específico
-function mostrarMareas(mes, dia) {
+function mostrarMareas(mes, dia, hora_actual = null) {
     if (!mareas_data || !mareas_data.meses[mes]) return;
     
     const mareas = mareas_data.meses[mes].dias[dia];
@@ -170,9 +170,42 @@ function mostrarMareas(mes, dia) {
     // Limpiar tabla
     tabulaBody.innerHTML = '';
     
+    // Si es el día actual, reorganizar para mostrar desde 3 horas antes
+    let mareas_ordenadas = [...mareas];
+    let indice_actual = -1;
+    
+    if (hora_actual !== null) {
+        // Encontrar índice de hora actual
+        const ahora = new Date();
+        const hora = ahora.getHours();
+        
+        indice_actual = hora;
+        
+        // Reorganizar: empezar desde 3 horas antes, o desde el inicio si no hay suficientes
+        const inicio = Math.max(0, indice_actual - 3);
+        mareas_ordenadas = [
+            ...mareas.slice(inicio, indice_actual + 1), // Últimas 3 + hora actual
+            ...mareas.slice(indice_actual + 1)          // Resto del día
+        ];
+        
+        // Si comenzamos desde después del inicio del día, ajustar el índice
+        if (inicio > 0) {
+            // Agregar las horas del inicio del día al final para completar 24
+            mareas_ordenadas = [...mareas_ordenadas, ...mareas.slice(0, inicio)];
+        }
+    }
+    
     // Llenar tabla
-    mareas.forEach(marea => {
+    mareas_ordenadas.forEach((marea, idx) => {
         const row = document.createElement('tr');
+        
+        // Determinar si es la hora actual
+        const es_hora_actual = hora_actual !== null && marea.hora === `${hora_actual.getHours().toString().padStart(2, '0')}:00`;
+        
+        if (es_hora_actual) {
+            row.className = 'hora-actual';
+        }
+        
         row.innerHTML = `
             <td><strong>${marea.hora}</strong></td>
             <td>${marea.altura.toFixed(2)}</td>
