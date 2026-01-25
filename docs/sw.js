@@ -1,11 +1,12 @@
 const CACHE_NAME = 'mareas-v1';
+const BASE_PATH = '/mareas_santaana';
 const URLS_TO_CACHE = [
-  '/',
-  '/index.html',
-  '/css/styles.css',
-  '/js/app.js',
-  '/data/mareas.json',
-  '/manifest.json'
+  `${BASE_PATH}/`,
+  `${BASE_PATH}/index.html`,
+  `${BASE_PATH}/css/styles.css`,
+  `${BASE_PATH}/js/app.js`,
+  `${BASE_PATH}/data/mareas.json`,
+  `${BASE_PATH}/manifest.json`
 ];
 
 // Instalación: cachear archivos estáticos
