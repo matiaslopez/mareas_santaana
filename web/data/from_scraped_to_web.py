@@ -31,22 +31,76 @@ for mes_num in range(1, 13):
             day = row['DD']
             month_data['dias'][day] = []
             
-            # Procesar cada hora (0-23)
+            # Obtener todas las alturas del día
+            alturas = [int(row[str(h)]) for h in range(24)]
+            
+            # Identificar máximos y mínimos locales
+            maximos_locales = set()
+            minimos_locales = set()
+            
             for hour in range(24):
-                altura_cm = int(row[str(hour)])
+                altura_cm = alturas[hour]
+                
+                # Comparar con vecinos (considerar límites del día)
+                if hour == 0:
+                    # Primera hora: comparar solo con la siguiente
+                    if altura_cm > alturas[hour + 1]:
+                        maximos_locales.add(hour)
+                    elif altura_cm < alturas[hour + 1]:
+                        minimos_locales.add(hour)
+                elif hour == 23:
+                    # Última hora: comparar solo con la anterior
+                    if altura_cm > alturas[hour - 1]:
+                        maximos_locales.add(hour)
+                    elif altura_cm < alturas[hour - 1]:
+                        minimos_locales.add(hour)
+                else:
+                    # Horas intermedias: comparar con ambos vecinos
+                    prev_h = alturas[hour - 1]
+                    next_h = alturas[hour + 1]
+                    
+                    if altura_cm > prev_h and altura_cm > next_h:
+                        maximos_locales.add(hour)
+                    elif altura_cm < prev_h and altura_cm < next_h:
+                        minimos_locales.add(hour)
+            
+            # Determinar el tipo para cada hora
+            for hour in range(24):
+                altura_cm = alturas[hour]
                 altura_m = altura_cm / 100.0
                 
-                # Determinar tipo basado en patrones
-                # Analizar si es máximo o mínimo local
-                prev_h = int(row[str(hour-1)]) if hour > 0 else altura_cm
-                next_h = int(row[str(hour+1)]) if hour < 23 else altura_cm
-                
-                if altura_cm > prev_h and altura_cm > next_h:
+                # Determinar tipo
+                if hour in maximos_locales:
                     tipo = 'pleamar'
-                elif altura_cm < prev_h and altura_cm < next_h:
+                elif hour in minimos_locales:
                     tipo = 'bajamar'
                 else:
-                    tipo = 'pleamar' if altura_cm > 80 else 'bajamar'
+                    # No es extremo local, determinar si está subiendo o bajando
+                    # Buscar el próximo extremo hacia adelante
+                    siguiente_es_maximo = None
+                    for h in range(hour + 1, 24):
+                        if h in maximos_locales:
+                            siguiente_es_maximo = True
+                            break
+                        elif h in minimos_locales:
+                            siguiente_es_maximo = False
+                            break
+                    
+                    # Si no encontramos extremo hacia adelante, buscar hacia atrás
+                    if siguiente_es_maximo is None:
+                        for h in range(hour - 1, -1, -1):
+                            if h in maximos_locales:
+                                siguiente_es_maximo = False  # Venimos de un máximo, vamos bajando
+                                break
+                            elif h in minimos_locales:
+                                siguiente_es_maximo = True  # Venimos de un mínimo, vamos subiendo
+                                break
+                    
+                    # Determinar tipo basado en la tendencia
+                    if siguiente_es_maximo:
+                        tipo = 'subiendo'
+                    else:
+                        tipo = 'bajando'
                 
                 month_data['dias'][day].append({
                     'hora': f'{hour:02d}:00',
@@ -77,4 +131,3 @@ with open(output_path, 'w', encoding='utf-8') as f:
 print(f"✅ Datos convertidos: {len(data_by_month)} meses")
 print(f"📁 Guardado en: {output_path}")
 print(f"📊 Total días procesados: {sum(len(m['dias']) for m in data_by_month.values())}")
-EOF
