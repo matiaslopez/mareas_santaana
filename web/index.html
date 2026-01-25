@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#1a4d7a">
+    <meta name="description" content="Mareas de Santa Ana, Colonia, Uruguay. Consulta las mareas del puerto en tiempo real.">
+    
+    <title>Mareas Santa Ana - Colonia</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" sizes="192x192" href="img/icon-192.png">
+    <link rel="apple-touch-icon" href="img/icon-192.png">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <h1>🌊 Mareas Santa Ana</h1>
+                <p class="subtitle">Puerto de Colonia, Uruguay</p>
+            </div>
+            <button id="installBtn" class="install-btn" hidden>
+                ⬇️ Instalar App
+            </button>
+        </header>
+
+        <main>
+            <!-- Próximas mareas -->
+            <section class="mareas-container">
+                <h2>Mareas Hoy</h2>
+                
+                <!-- Estado actual -->
+                <div class="estado-actual">
+                    <div class="estado-label">Estado Actual</div>
+                    <div class="estado-valor" id="estadoActual">--</div>
+                    <div class="estado-hora">Hora: <span id="horaActual">--:--</span></div>
+                    <div class="estado-altura">Altura: <span id="alturaActual">-- m</span></div>
+                </div>
+
+                <div class="mareas-resumen">
+                    <div class="marea-card previa-pleamar">
+                        <div class="marea-tipo">Pleamar Previa</div>
+                        <div class="marea-hora" id="previaPleamarHora">--:--</div>
+                        <div class="marea-altura" id="previaPleamarAltura">-- m</div>
+                    </div>
+
+                    <div class="marea-card proxima-pleamar">
+                        <div class="marea-tipo">Próxima Pleamar</div>
+                        <div class="marea-hora" id="proximaPleamarHora">--:--</div>
+                        <div class="marea-altura" id="proximaPleamarAltura">-- m</div>
+                    </div>
+
+                    <div class="marea-card previa-bajamar">
+                        <div class="marea-tipo">Bajamar Previa</div>
+                        <div class="marea-hora" id="previaBajamarHora">--:--</div>
+                        <div class="marea-altura" id="previaBajamarAltura">-- m</div>
+                    </div>
+
+                    <div class="marea-card proxima-bajamar">
+                        <div class="marea-tipo">Próxima Bajamar</div>
+                        <div class="marea-hora" id="proximaBajamarHora">--:--</div>
+                        <div class="marea-altura" id="proximaBajamarAltura">-- m</div>
+                    </div>
+                </div>
+
+                <!-- Selector de mes y día -->
+                <div class="filtros">
+                    <select id="mesSelector" class="selector">
+                        <option value="">Seleccionar mes...</option>
+                    </select>
+                    <select id="diaSelector" class="selector" disabled>
+                        <option value="">Seleccionar día...</option>
+                    </select>
+                </div>
+
+                <!-- Tabla de mareas por hora -->
+                <div class="tabla-mareas">
+                    <h3>Mareas Hora a Hora</h3>
+                    <div class="tabla-scroll">
+                        <table id="tareasTable">
+                            <thead>
+                                <tr>
+                                    <th>Hora</th>
+                                    <th>Altura (m)</th>
+                                    <th>Tipo</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabulaBody">
+                                <tr>
+                                    <td colspan="3" class="sin-datos">Cargando datos...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Información -->
+            <section class="info-section">
+                <h2>Información</h2>
+                <div class="info-card">
+                    <p><strong>Puerto:</strong> Santa Ana, Colonia, Uruguay</p>
+                    <p><strong>Ubicación:</strong> Río de la Plata</p>
+                    <p><strong>Tipo de marea:</strong> Semidiurna (2 pleamares y 2 bajamares diarias)</p>
+                </div>
+                <div class="info-card">
+                    <p><strong>Pleamar:</strong> Nivel máximo del agua</p>
+                    <p><strong>Bajamar:</strong> Nivel mínimo del agua</p>
+                    <p><strong>Altura:</strong> Medida en metros sobre el nivel de referencia</p>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>&copy; 2026 Mareas Santa Ana | Datos actualizados: <span id="fechaActualizacion">--</span></p>
+        </footer>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
