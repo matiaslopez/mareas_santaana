@@ -23,14 +23,18 @@ const installBtn = document.getElementById('installBtn');
 const estadoActual = document.getElementById('estadoActual');
 const horaActual = document.getElementById('horaActual');
 const alturaActual = document.getElementById('alturaActual');
-const previaPleamarHora = document.getElementById('previaPleamarHora');
-const previaPleamarAltura = document.getElementById('previaPleamarAltura');
-const proximaPleamarHora = document.getElementById('proximaPleamarHora');
-const proximaPleamarAltura = document.getElementById('proximaPleamarAltura');
-const previaBajamarHora = document.getElementById('previaBajamarHora');
-const previaBajamarAltura = document.getElementById('previaBajamarAltura');
-const proximaBajamarHora = document.getElementById('proximaBajamarHora');
-const proximaBajamarAltura = document.getElementById('proximaBajamarAltura');
+const pasadoCercanoLabel = document.getElementById('pasadoCercanoLabel');
+const pasadoCercanoHora = document.getElementById('pasadoCercanoHora');
+const pasadoCercanoAltura = document.getElementById('pasadoCercanoAltura');
+const pasadoLejanoLabel = document.getElementById('pasadoLejanoLabel');
+const pasadoLejanoHora = document.getElementById('pasadoLejanoHora');
+const pasadoLejanoAltura = document.getElementById('pasadoLejanoAltura');
+const futuroCercanoLabel = document.getElementById('futuroCercanoLabel');
+const futuroCercanoHora = document.getElementById('futuroCercanoHora');
+const futuroCercanoAltura = document.getElementById('futuroCercanoAltura');
+const futuroLejanoLabel = document.getElementById('futuroLejanoLabel');
+const futuroLejanoHora = document.getElementById('futuroLejanoHora');
+const futuroLejanoAltura = document.getElementById('futuroLejanoAltura');
 const fechaActualizacion = document.getElementById('fechaActualizacion');
 
 // Cargar datos de mareas
@@ -234,68 +238,76 @@ function mostrarProximaYUltimaMarea(mes, dia, fecha_actual) {
         estadoActual.textContent = estado;
     }
     
-    // Buscar pleamares y bajamares previas y próximas
-    let previa_pleamar = null;
-    let proxima_pleamar = null;
-    let previa_bajamar = null;
-    let proxima_bajamar = null;
+    // Encontrar eventos pasados y futuros (pleamares y bajamares)
+    let eventos_pasados = [];
+    let eventos_futuros = [];
     
-    // Buscar hacia atrás para pleamar y bajamar previas
+    // Buscar hacia atrás para eventos pasados
     for (let i = indice_actual; i >= 0; i--) {
-        if (!previa_pleamar && mareas[i].tipo === 'pleamar') {
-            previa_pleamar = mareas[i];
+        if (mareas[i].tipo === 'pleamar' || mareas[i].tipo === 'bajamar') {
+            eventos_pasados.push(mareas[i]);
+            if (eventos_pasados.length >= 2) break;
         }
-        if (!previa_bajamar && mareas[i].tipo === 'bajamar') {
-            previa_bajamar = mareas[i];
-        }
-        if (previa_pleamar && previa_bajamar) break;
     }
     
-    // Buscar hacia adelante para pleamar y bajamar próximas
+    // Buscar hacia adelante para eventos futuros
     for (let i = indice_actual + 1; i < mareas.length; i++) {
-        if (!proxima_pleamar && mareas[i].tipo === 'pleamar') {
-            proxima_pleamar = mareas[i];
+        if (mareas[i].tipo === 'pleamar' || mareas[i].tipo === 'bajamar') {
+            eventos_futuros.push(mareas[i]);
+            if (eventos_futuros.length >= 2) break;
         }
-        if (!proxima_bajamar && mareas[i].tipo === 'bajamar') {
-            proxima_bajamar = mareas[i];
+    }
+    
+    // Mostrar eventos pasados (el más reciente primero, luego el anterior)
+    if (eventos_pasados.length > 0) {
+        const cercano = eventos_pasados[0];
+        pasadoCercanoLabel.textContent = cercano.tipo === 'pleamar' ? '🔵 Pleamar' : '🟢 Bajamar';
+        pasadoCercanoHora.textContent = cercano.hora;
+        pasadoCercanoAltura.textContent = `${cercano.altura.toFixed(2)} m`;
+        
+        if (eventos_pasados.length > 1) {
+            const lejano = eventos_pasados[1];
+            pasadoLejanoLabel.textContent = lejano.tipo === 'pleamar' ? '🔵 Pleamar' : '🟢 Bajamar';
+            pasadoLejanoHora.textContent = lejano.hora;
+            pasadoLejanoAltura.textContent = `${lejano.altura.toFixed(2)} m`;
+        } else {
+            pasadoLejanoLabel.textContent = '--';
+            pasadoLejanoHora.textContent = '--:--';
+            pasadoLejanoAltura.textContent = '-- m';
         }
-        if (proxima_pleamar && proxima_bajamar) break;
+    } else {
+        pasadoCercanoLabel.textContent = '--';
+        pasadoCercanoHora.textContent = '--:--';
+        pasadoCercanoAltura.textContent = '-- m';
+        pasadoLejanoLabel.textContent = '--';
+        pasadoLejanoHora.textContent = '--:--';
+        pasadoLejanoAltura.textContent = '-- m';
     }
     
-    // Mostrar pleamar previa
-    if (previa_pleamar) {
-        previaPleamarHora.textContent = previa_pleamar.hora;
-        previaPleamarAltura.textContent = `${previa_pleamar.altura.toFixed(2)} m`;
+    // Mostrar eventos futuros (el próximo primero, luego el siguiente)
+    if (eventos_futuros.length > 0) {
+        const cercano = eventos_futuros[0];
+        futuroCercanoLabel.textContent = cercano.tipo === 'pleamar' ? '🔵 Pleamar' : '🟢 Bajamar';
+        futuroCercanoHora.textContent = cercano.hora;
+        futuroCercanoAltura.textContent = `${cercano.altura.toFixed(2)} m`;
+        
+        if (eventos_futuros.length > 1) {
+            const lejano = eventos_futuros[1];
+            futuroLejanoLabel.textContent = lejano.tipo === 'pleamar' ? '🔵 Pleamar' : '🟢 Bajamar';
+            futuroLejanoHora.textContent = lejano.hora;
+            futuroLejanoAltura.textContent = `${lejano.altura.toFixed(2)} m`;
+        } else {
+            futuroLejanoLabel.textContent = '--';
+            futuroLejanoHora.textContent = '--:--';
+            futuroLejanoAltura.textContent = '-- m';
+        }
     } else {
-        previaPleamarHora.textContent = '--:--';
-        previaPleamarAltura.textContent = '-- m';
-    }
-    
-    // Mostrar próxima pleamar
-    if (proxima_pleamar) {
-        proximaPleamarHora.textContent = proxima_pleamar.hora;
-        proximaPleamarAltura.textContent = `${proxima_pleamar.altura.toFixed(2)} m`;
-    } else {
-        proximaPleamarHora.textContent = '--:--';
-        proximaPleamarAltura.textContent = '-- m';
-    }
-    
-    // Mostrar bajamar previa
-    if (previa_bajamar) {
-        previaBajamarHora.textContent = previa_bajamar.hora;
-        previaBajamarAltura.textContent = `${previa_bajamar.altura.toFixed(2)} m`;
-    } else {
-        previaBajamarHora.textContent = '--:--';
-        previaBajamarAltura.textContent = '-- m';
-    }
-    
-    // Mostrar próxima bajamar
-    if (proxima_bajamar) {
-        proximaBajamarHora.textContent = proxima_bajamar.hora;
-        proximaBajamarAltura.textContent = `${proxima_bajamar.altura.toFixed(2)} m`;
-    } else {
-        proximaBajamarHora.textContent = '--:--';
-        proximaBajamarAltura.textContent = '-- m';
+        futuroCercanoLabel.textContent = '--';
+        futuroCercanoHora.textContent = '--:--';
+        futuroCercanoAltura.textContent = '-- m';
+        futuroLejanoLabel.textContent = '--';
+        futuroLejanoHora.textContent = '--:--';
+        futuroLejanoAltura.textContent = '-- m';
     }
 }
 

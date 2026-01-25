@@ -39,28 +39,34 @@
                 </div>
 
                 <div class="mareas-resumen">
-                    <div class="marea-card previa-pleamar">
-                        <div class="marea-tipo">Pleamar Previa</div>
-                        <div class="marea-hora" id="previaPleamarHora">--:--</div>
-                        <div class="marea-altura" id="previaPleamarAltura">-- m</div>
+                    <!-- Eventos Pasados -->
+                    <div class="marea-card eventos-pasados">
+                        <div class="marea-tipo">📅 Eventos Pasados</div>
+                        <div class="evento-principal">
+                            <div class="evento-label" id="pasadoCercanoLabel">--</div>
+                            <div class="evento-hora" id="pasadoCercanoHora">--:--</div>
+                            <div class="evento-altura" id="pasadoCercanoAltura">-- m</div>
+                        </div>
+                        <div class="evento-secundario">
+                            <span class="evento-label-small" id="pasadoLejanoLabel">--</span>
+                            <span class="evento-hora-small" id="pasadoLejanoHora">--:--</span>
+                            <span class="evento-altura-small" id="pasadoLejanoAltura">-- m</span>
+                        </div>
                     </div>
 
-                    <div class="marea-card proxima-pleamar">
-                        <div class="marea-tipo">Próxima Pleamar</div>
-                        <div class="marea-hora" id="proximaPleamarHora">--:--</div>
-                        <div class="marea-altura" id="proximaPleamarAltura">-- m</div>
-                    </div>
-
-                    <div class="marea-card previa-bajamar">
-                        <div class="marea-tipo">Bajamar Previa</div>
-                        <div class="marea-hora" id="previaBajamarHora">--:--</div>
-                        <div class="marea-altura" id="previaBajamarAltura">-- m</div>
-                    </div>
-
-                    <div class="marea-card proxima-bajamar">
-                        <div class="marea-tipo">Próxima Bajamar</div>
-                        <div class="marea-hora" id="proximaBajamarHora">--:--</div>
-                        <div class="marea-altura" id="proximaBajamarAltura">-- m</div>
+                    <!-- Eventos Futuros -->
+                    <div class="marea-card eventos-futuros">
+                        <div class="marea-tipo">🔮 Próximos Eventos</div>
+                        <div class="evento-principal">
+                            <div class="evento-label" id="futuroCercanoLabel">--</div>
+                            <div class="evento-hora" id="futuroCercanoHora">--:--</div>
+                            <div class="evento-altura" id="futuroCercanoAltura">-- m</div>
+                        </div>
+                        <div class="evento-secundario">
+                            <span class="evento-label-small" id="futuroLejanoLabel">--</span>
+                            <span class="evento-hora-small" id="futuroLejanoHora">--:--</span>
+                            <span class="evento-altura-small" id="futuroLejanoAltura">-- m</span>
+                        </div>
                     </div>
                 </div>
 
