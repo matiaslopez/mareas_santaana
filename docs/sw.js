@@ -90,7 +90,7 @@ self.addEventListener('fetch', (event) => {
           .catch(() => {
             // Red no disponible, servir página offline
             if (event.request.destination === 'document') {
-              return caches.match('/index.html');
+              return caches.match(`${BASE_PATH}/index.html`);
             }
             return null;
           });

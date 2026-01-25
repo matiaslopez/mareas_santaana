@@ -2,7 +2,7 @@
   "name": "Mareas Santa Ana - Colonia, Uruguay",
   "short_name": "Mareas Santa Ana",
   "description": "Consulta las mareas del puerto de Santa Ana en Colonia, Uruguay. Obtén información en tiempo real sobre pleamares y bajamares.",
-  "start_url": "/mareas_santaana/",
+  "start_url": "/mareas_santaana/index.html",
   "scope": "/mareas_santaana/",
   "display": "standalone",
   "orientation": "portrait-primary",
