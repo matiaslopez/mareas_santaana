@@ -397,6 +397,11 @@ footer {
         grid-template-columns: 1fr;
     }
 
+    /* Cambiar orden en mobile: eventos futuros primero */
+    .marea-card.eventos-futuros {
+        order: -1;
+    }
+
     .filtros {
         grid-template-columns: 1fr;
     }

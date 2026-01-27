@@ -466,7 +466,44 @@ window.addEventListener('appinstalled', () => {
     installBtn.setAttribute('hidden', '');
 });
 
+// Función para calcular milisegundos hasta el próximo intervalo de 15 minutos
+function calcularProximaActualizacion() {
+    const ahora = new Date();
+    const minutos = ahora.getMinutes();
+    const segundos = ahora.getSeconds();
+    const milisegundos = ahora.getMilliseconds();
+    
+    // Calcular minutos hasta el próximo cuarto de hora (0, 15, 30, 45)
+    const minutosHastaProximo = 15 - (minutos % 15);
+    
+    // Convertir a milisegundos total
+    const msHastaProximo = (minutosHastaProximo * 60 - segundos) * 1000 - milisegundos;
+    
+    return msHastaProximo;
+}
+
+// Función para programar la próxima actualización
+function programarActualizacion() {
+    const msHastaProximo = calcularProximaActualizacion();
+    
+    console.log(`Próxima actualización en ${Math.round(msHastaProximo / 1000)} segundos`);
+    
+    setTimeout(() => {
+        console.log('Actualizando vista...');
+        mostrarDatosHoy();
+        
+        // Programar la siguiente actualización (cada 15 minutos)
+        setInterval(() => {
+            console.log('Actualizando vista...');
+            mostrarDatosHoy();
+        }, 15 * 60 * 1000); // 15 minutos
+    }, msHastaProximo);
+}
+
 // Inicializar cuando el DOM está listo
 document.addEventListener('DOMContentLoaded', () => {
     cargarDatos();
+    
+    // Programar actualizaciones automáticas cada 15 minutos
+    programarActualizacion();
 });
