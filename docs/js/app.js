@@ -14,6 +14,7 @@ if ('serviceWorker' in navigator) {
 // Variables globales
 let mareas_data = null;
 let deferredPrompt = null;
+let mareaSChart = null;
 
 // Elementos del DOM
 const mesSelector = document.getElementById('mesSelector');
@@ -154,6 +155,9 @@ function mostrarDatosHoy() {
     
     // Mostrar próxima y última marea
     mostrarProximaYUltimaMarea(mes, dia, ahora);
+    
+    // Generar gráfico de mareas
+    generarGraficoMareas(mes, dia, ahora);
 }
 
 // Mostrar mareas de un día específico
@@ -454,6 +458,199 @@ function mostrarProximaYUltimaMarea(mes, dia, fecha_actual) {
         futuroLejanoHora.textContent = '--:--';
         futuroLejanoAltura.textContent = '-- m';
     }
+}
+
+// Generar gráfico de mareas
+function generarGraficoMareas(mes, dia, fecha_actual) {
+    if (!mareas_data || !mareas_data.meses[mes]) return;
+    
+    const mareas_hoy = mareas_data.meses[mes].dias[dia];
+    if (!mareas_hoy || mareas_hoy.length === 0) return;
+    
+    const hora_actual = fecha_actual.getHours();
+    
+    // Recopilar datos de 8 horas atrás y 8 horas adelante
+    let datos_grafico = [];
+    
+    // Calcular rango de horas
+    const hora_inicio = hora_actual - 8;
+    const hora_fin = hora_actual + 8;
+    
+    // Agregar datos del día anterior si es necesario
+    if (hora_inicio < 0) {
+        const dia_anterior = obtenerDiaAnterior(mes, dia);
+        if (dia_anterior) {
+            const mareas_ayer = mareas_data.meses[dia_anterior.mes].dias[dia_anterior.dia];
+            if (mareas_ayer) {
+                for (let h = 24 + hora_inicio; h < 24; h++) {
+                    if (mareas_ayer[h]) {
+                        datos_grafico.push({
+                            hora: mareas_ayer[h].hora,
+                            altura: mareas_ayer[h].altura,
+                            tipo: mareas_ayer[h].tipo
+                        });
+                    }
+                }
+            }
+        }
+    }
+    
+    // Agregar datos del día actual
+    const inicio_hoy = Math.max(0, hora_inicio);
+    const fin_hoy = Math.min(23, hora_fin);
+    
+    for (let h = inicio_hoy; h <= fin_hoy; h++) {
+        if (mareas_hoy[h]) {
+            datos_grafico.push({
+                hora: mareas_hoy[h].hora,
+                altura: mareas_hoy[h].altura,
+                tipo: mareas_hoy[h].tipo
+            });
+        }
+    }
+    
+    // Agregar datos del día siguiente si es necesario
+    if (hora_fin > 23) {
+        const dia_siguiente = obtenerDiaSiguiente(mes, dia);
+        if (dia_siguiente) {
+            const mareas_manana = mareas_data.meses[dia_siguiente.mes].dias[dia_siguiente.dia];
+            if (mareas_manana) {
+                for (let h = 0; h < hora_fin - 23; h++) {
+                    if (mareas_manana[h]) {
+                        datos_grafico.push({
+                            hora: mareas_manana[h].hora,
+                            altura: mareas_manana[h].altura,
+                            tipo: mareas_manana[h].tipo
+                        });
+                    }
+                }
+            }
+        }
+    }
+    
+    // Extraer etiquetas y valores
+    const etiquetas = datos_grafico.map(d => d.hora);
+    const alturas = datos_grafico.map(d => d.altura);
+    
+    // Identificar puntos de pleamar y bajamar
+    const puntos_pleamar = [];
+    const puntos_bajamar = [];
+    
+    datos_grafico.forEach((dato, idx) => {
+        if (dato.tipo === 'pleamar') {
+            puntos_pleamar.push({ x: idx, y: dato.altura });
+        } else if (dato.tipo === 'bajamar') {
+            puntos_bajamar.push({ x: idx, y: dato.altura });
+        }
+    });
+    
+    // Destruir gráfico anterior si existe
+    if (mareaSChart) {
+        mareaSChart.destroy();
+    }
+    
+    // Crear nuevo gráfico
+    const ctx = document.getElementById('mareaSChart');
+    if (!ctx) return;
+    
+    mareaSChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: etiquetas,
+            datasets: [
+                {
+                    label: 'Altura de Marea (m)',
+                    data: alturas,
+                    borderColor: '#1a4d7a',
+                    backgroundColor: 'rgba(26, 77, 122, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    pointBackgroundColor: '#1a4d7a'
+                },
+                {
+                    label: 'Pleamar',
+                    data: puntos_pleamar.map(p => ({ x: etiquetas[p.x], y: p.y })),
+                    borderColor: 'transparent',
+                    backgroundColor: '#2196F3',
+                    pointRadius: 8,
+                    pointHoverRadius: 10,
+                    pointStyle: 'circle',
+                    showLine: false
+                },
+                {
+                    label: 'Bajamar',
+                    data: puntos_bajamar.map(p => ({ x: etiquetas[p.x], y: p.y })),
+                    borderColor: 'transparent',
+                    backgroundColor: '#4CAF50',
+                    pointRadius: 8,
+                    pointHoverRadius: 10,
+                    pointStyle: 'circle',
+                    showLine: false
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'bottom',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 15,
+                        font: {
+                            size: 12
+                        }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            if (context.dataset.label === 'Altura de Marea (m)') {
+                                return `Altura: ${context.parsed.y.toFixed(2)} m`;
+                            }
+                            return `${context.dataset.label}: ${context.parsed.y.toFixed(2)} m`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    display: true,
+                    title: {
+                        display: true,
+                        text: 'Hora',
+                        font: {
+                            weight: 'bold'
+                        }
+                    },
+                    ticks: {
+                        maxRotation: 45,
+                        minRotation: 45
+                    }
+                },
+                y: {
+                    display: true,
+                    title: {
+                        display: true,
+                        text: 'Altura (m)',
+                        font: {
+                            weight: 'bold'
+                        }
+                    },
+                    beginAtZero: false
+                }
+            },
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            }
+        }
+    });
 }
 
 // Capitalizar texto

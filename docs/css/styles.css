@@ -143,9 +143,28 @@ section h3 {
 /* Mareas resumen */
 .mareas-resumen {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 1rem;
-    margin-bottom: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+/* Gráfico de mareas */
+.grafico-container {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+}
+
+.grafico-container h3 {
+    margin: 0 0 1rem 0;
+    font-size: 1.1rem;
+    color: #1a4d7a;
+}
+
+.grafico-container canvas {
+    max-height: 300px;
 }
 
 .marea-card {
