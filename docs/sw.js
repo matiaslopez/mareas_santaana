@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mareas-v1';
+const CACHE_NAME = 'mareas-v2';
 const BASE_PATH = '/mareas_santaana';
 const URLS_TO_CACHE = [
   `${BASE_PATH}/`,

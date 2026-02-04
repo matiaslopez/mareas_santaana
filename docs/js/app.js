@@ -536,6 +536,20 @@ function generarGraficoMareas(mes, dia, fecha_actual) {
     const puntos_pleamar = [];
     const puntos_bajamar = [];
     
+    // Calcular posición exacta de la hora actual en el gráfico (con minutos)
+    const minuto_actual = fecha_actual.getMinutes();
+    const hora_actual_str = `${hora_actual.toString().padStart(2, '0')}:00`;
+    let indice_hora_actual = datos_grafico.findIndex(d => d.hora === hora_actual_str);
+    
+    // Si no se encontró la hora exacta, buscar la más cercana
+    if (indice_hora_actual === -1 && datos_grafico.length > 0) {
+        indice_hora_actual = Math.floor(datos_grafico.length / 2); // Centro del gráfico como fallback
+    }
+    
+    // Calcular posición exacta interpolando los minutos
+    // Si son las 13:54, la línea debe estar a 54/60 = 0.9 entre el índice 13:00 y 14:00
+    const posicion_exacta = indice_hora_actual + (minuto_actual / 60);
+    
     datos_grafico.forEach((dato, idx) => {
         if (dato.tipo === 'pleamar') {
             puntos_pleamar.push({ x: idx, y: dato.altura });
@@ -674,28 +688,68 @@ function generarGraficoMareas(mes, dia, fecha_actual) {
                     grace: '10%'
                 }
             },
-            annotation: {
-                annotations: {
-                    horaActualLine: {
-                        type: 'line',
-                        xMin: 8,
-                        xMax: 8,
-                        borderColor: '#ff6b6b',
-                        borderWidth: 2,
-                        borderDash: [5, 5],
-                        label: {
-                            display: true,
-                            content: 'Ahora',
-                            position: 'start',
-                            backgroundColor: '#ff6b6b',
-                            color: 'white',
-                            font: {
-                                weight: 'bold',
-                                size: 10
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            if (context.dataset.label === 'Altura de Marea (m)') {
+                                return `Altura: ${context.parsed.y.toFixed(2)} m`;
+                            }
+                            return `${context.dataset.label}: ${context.parsed.y.toFixed(2)} m`;
+                        }
+                    }
+                },
+                datalabels: {
+                    display: function(context) {
+                        // Mostrar etiquetas solo para pleamar y bajamar
+                        return context.datasetIndex === 1 || context.datasetIndex === 2;
+                    },
+                    formatter: function(value, context) {
+                        if (context.datasetIndex === 1 || context.datasetIndex === 2) {
+                            const hora = value.x;
+                            const altura = value.y.toFixed(2);
+                            return `${hora}\n${altura}m`;
+                        }
+                        return '';
+                    },
+                    color: function(context) {
+                        return context.datasetIndex === 1 ? '#1976D2' : '#388E3C';
+                    },
+                    font: {
+                        weight: 'bold',
+                        size: 11
+                    },
+                    align: 'top',
+                    offset: 8,
+                    textAlign: 'center'
+                },
+                annotation: indice_hora_actual >= 0 ? {
+                    annotations: {
+                        horaActualLine: {
+                            type: 'line',
+                            xMin: posicion_exacta,
+                            xMax: posicion_exacta,
+                            borderColor: '#ff6b6b',
+                            borderWidth: 3,
+                            borderDash: [5, 5],
+                            label: {
+                                display: true,
+                                content: `${hora_actual.toString().padStart(2, '0')}:${minuto_actual.toString().padStart(2, '0')}`,
+                                position: 'center',
+                                backgroundColor: '#ff6b6b',
+                                color: 'white',
+                                font: {
+                                    weight: 'bold',
+                                    size: 10
+                                },
+                                padding: 4
                             }
                         }
                     }
-                }
+                } : undefined
             },
             interaction: {
                 intersect: false,
