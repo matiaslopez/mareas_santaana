@@ -736,7 +736,7 @@ function generarGraficoMareas(mes, dia, fecha_actual) {
                             borderWidth: 3,
                             borderDash: [5, 5],
                             label: {
-                                display: true,
+                                display: window.innerWidth > 768,
                                 content: `${hora_actual.toString().padStart(2, '0')}:${minuto_actual.toString().padStart(2, '0')}`,
                                 position: 'center',
                                 backgroundColor: '#ff6b6b',
