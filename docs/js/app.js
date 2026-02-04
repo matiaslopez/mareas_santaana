@@ -553,6 +553,12 @@ function generarGraficoMareas(mes, dia, fecha_actual) {
     const ctx = document.getElementById('mareaSChart');
     if (!ctx) return;
     
+    // Registrar plugins
+    Chart.register(ChartDataLabels);
+    if (typeof window.ChartAnnotation !== 'undefined') {
+        Chart.register(window.ChartAnnotation);
+    }
+    
     mareaSChart = new Chart(ctx, {
         type: 'line',
         data: {
@@ -578,7 +584,10 @@ function generarGraficoMareas(mes, dia, fecha_actual) {
                     pointRadius: 8,
                     pointHoverRadius: 10,
                     pointStyle: 'circle',
-                    showLine: false
+                    showLine: false,
+                    datalabels: {
+                        display: true
+                    }
                 },
                 {
                     label: 'Bajamar',
@@ -588,7 +597,10 @@ function generarGraficoMareas(mes, dia, fecha_actual) {
                     pointRadius: 8,
                     pointHoverRadius: 10,
                     pointStyle: 'circle',
-                    showLine: false
+                    showLine: false,
+                    datalabels: {
+                        display: true
+                    }
                 }
             ]
         },
@@ -597,15 +609,7 @@ function generarGraficoMareas(mes, dia, fecha_actual) {
             maintainAspectRatio: true,
             plugins: {
                 legend: {
-                    display: true,
-                    position: 'bottom',
-                    labels: {
-                        usePointStyle: true,
-                        padding: 15,
-                        font: {
-                            size: 12
-                        }
-                    }
+                    display: false
                 },
                 tooltip: {
                     callbacks: {
@@ -616,6 +620,30 @@ function generarGraficoMareas(mes, dia, fecha_actual) {
                             return `${context.dataset.label}: ${context.parsed.y.toFixed(2)} m`;
                         }
                     }
+                },
+                datalabels: {
+                    display: function(context) {
+                        // Mostrar etiquetas solo para pleamar y bajamar
+                        return context.datasetIndex === 1 || context.datasetIndex === 2;
+                    },
+                    formatter: function(value, context) {
+                        if (context.datasetIndex === 1 || context.datasetIndex === 2) {
+                            const hora = value.x;
+                            const altura = value.y.toFixed(2);
+                            return `${hora}\n${altura}m`;
+                        }
+                        return '';
+                    },
+                    color: function(context) {
+                        return context.datasetIndex === 1 ? '#1976D2' : '#388E3C';
+                    },
+                    font: {
+                        weight: 'bold',
+                        size: 11
+                    },
+                    align: 'top',
+                    offset: 8,
+                    textAlign: 'center'
                 }
             },
             scales: {
@@ -642,7 +670,31 @@ function generarGraficoMareas(mes, dia, fecha_actual) {
                             weight: 'bold'
                         }
                     },
-                    beginAtZero: false
+                    beginAtZero: false,
+                    grace: '10%'
+                }
+            },
+            annotation: {
+                annotations: {
+                    horaActualLine: {
+                        type: 'line',
+                        xMin: 8,
+                        xMax: 8,
+                        borderColor: '#ff6b6b',
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        label: {
+                            display: true,
+                            content: 'Ahora',
+                            position: 'start',
+                            backgroundColor: '#ff6b6b',
+                            color: 'white',
+                            font: {
+                                weight: 'bold',
+                                size: 10
+                            }
+                        }
+                    }
                 }
             },
             interaction: {

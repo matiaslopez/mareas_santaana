@@ -167,6 +167,12 @@ section h3 {
     max-height: 300px;
 }
 
+@media (max-width: 600px) {
+    .grafico-container canvas {
+        max-height: 400px;
+    }
+}
+
 .marea-card {
     background: white;
     border: 2px solid #e0e0e0;
