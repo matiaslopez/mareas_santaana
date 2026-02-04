@@ -185,13 +185,32 @@ function mostrarMareas(mes, dia, hora_actual = null) {
         const inicio = Math.max(0, indice_actual - 3);
         mareas_ordenadas = [
             ...mareas.slice(inicio, indice_actual + 1), // Últimas 3 + hora actual
-            ...mareas.slice(indice_actual + 1)          // Resto del día
+            ...mareas.slice(indice_actual + 1)          // Resto del día actual
         ];
         
-        // Si comenzamos desde después del inicio del día, ajustar el índice
-        if (inicio > 0) {
-            // Agregar las horas del inicio del día al final para completar 24
-            mareas_ordenadas = [...mareas_ordenadas, ...mareas.slice(0, inicio)];
+        // Calcular cuántas horas faltan para completar la vista
+        const horas_mostradas = mareas_ordenadas.length;
+        const horas_faltantes = 24 - horas_mostradas;
+        
+        if (horas_faltantes > 0) {
+            // Si faltaban horas al inicio del día (inicio > 0), agregar del inicio del día
+            if (inicio > 0) {
+                const horas_inicio = Math.min(inicio, horas_faltantes);
+                mareas_ordenadas = [...mareas_ordenadas, ...mareas.slice(0, horas_inicio)];
+            }
+            
+            // Si aún faltan horas, buscar en el día siguiente
+            const horas_aun_faltantes = 24 - mareas_ordenadas.length;
+            if (horas_aun_faltantes > 0) {
+                const dia_siguiente = obtenerDiaSiguiente(mes, dia);
+                if (dia_siguiente) {
+                    const mareas_manana = mareas_data.meses[dia_siguiente.mes].dias[dia_siguiente.dia];
+                    if (mareas_manana) {
+                        const horas_del_siguiente = mareas_manana.slice(0, horas_aun_faltantes);
+                        mareas_ordenadas = [...mareas_ordenadas, ...horas_del_siguiente];
+                    }
+                }
+            }
         }
     }
     
